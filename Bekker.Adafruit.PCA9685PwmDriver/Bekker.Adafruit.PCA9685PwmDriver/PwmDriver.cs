@@ -17,6 +17,13 @@ namespace Bekker.Adafruit.PCA9685PwmDriver
         private const byte Pca9685Mode1 = 0x0;
         private const byte Pca9685Prescale = 0xFE;
 
+        private const byte SERVO0_ON_L = 0x6;
+        private const byte SERVO0_ON_H = 0x7;
+        private const byte SERVO0_OFF_L = 0x8;
+        private const byte SERVO0_OFF_H = 0x9;
+
+        private static uint MinPulse = 150;
+        private static uint MaxPulse = 600;
 
         private I2cDevice _i2Cpwm;
         private static bool _isInited = false;
@@ -34,6 +41,34 @@ namespace Bekker.Adafruit.PCA9685PwmDriver
         public void ReInit()
         {
             InitI2CPwm();
+        }
+
+        public void MovePercentage(byte servo, int percentage)
+        {
+            if(percentage > 100)
+            {
+                percentage = 100;
+            }
+            if(percentage < 0)
+            {
+                percentage = 0;
+            }
+
+            var pulse = Map(percentage,0,100, MinPulse, MaxPulse);
+            Move(servo, 0, (int)pulse);
+        }
+
+        private void Move(byte num, UInt16 on, UInt16 off)
+        {
+            if (!_isInited)
+            {
+                return;
+            }
+            Write8(Pca9685Mode1, 0x0);
+            Write8((byte)(SERVO0_ON_L + 4 * num), (byte)on);
+            Write8((byte)(SERVO0_ON_H + 4 * num), (byte)(on >> 8));
+            Write8((byte)(SERVO0_OFF_L + 4 * num), (byte)off);
+            Write8((byte)(SERVO0_OFF_H + 4 * num), (byte)(off >> 8));
         }
 
         private async void InitI2CPwm()
@@ -80,6 +115,11 @@ namespace Bekker.Adafruit.PCA9685PwmDriver
         private void Write8(byte addr, byte d)
         {
             _i2Cpwm.Write(new byte[] { addr, d });
+        }
+
+        private long Map(long x, long in_min, long in_max, long out_min, long out_max)
+        {
+            return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
         }
     }
 }
