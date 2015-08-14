@@ -58,7 +58,7 @@ namespace Bekker.Adafruit.PCA9685PwmDriver
             Move(servo, 0, (int)pulse);
         }
 
-        private void Move(byte num, UInt16 on, UInt16 off)
+        private void Move(byte num, int on, int off)
         {
             if (!_isInited)
             {

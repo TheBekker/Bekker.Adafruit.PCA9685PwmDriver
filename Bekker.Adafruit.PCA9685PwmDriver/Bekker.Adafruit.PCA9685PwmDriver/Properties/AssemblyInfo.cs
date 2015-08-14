@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Bekker.Adafruit.16ChannelPwmDriver")]
+[assembly: AssemblyTitle("Bekker.Adafruit.PCA9685PwmDriver")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("Bekker.Adafruit.16ChannelPwmDriver")]
+[assembly: AssemblyProduct("Bekker.Adafruit.PCA9685PwmDriver")]
 [assembly: AssemblyCopyright("Copyright ©  2015")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
