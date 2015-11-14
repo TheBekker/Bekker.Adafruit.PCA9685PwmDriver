@@ -25,7 +25,7 @@ namespace Bekker.Adafruit.PCA9685PwmDriver
         private static uint MinPulse = 150;
         private static uint MaxPulse = 600;
 
-        private I2cDevice _i2Cpwm;
+        private I2cDevice _device;
         private static bool _isInited = false;
 
         public bool IsDevicedInited => _isInited;
@@ -36,12 +36,6 @@ namespace Bekker.Adafruit.PCA9685PwmDriver
             I2CControllerName = controllerName;
             PwmFreq = pwmFreq;
             InitI2CPwm();
-        }
-
-        public void TakeDown()
-        {
-            _i2Cpwm.Dispose();
-
         }
 
         public void ReInit()
@@ -84,14 +78,14 @@ namespace Bekker.Adafruit.PCA9685PwmDriver
 
             var aqs = I2cDevice.GetDeviceSelector(I2CControllerName);
             var dis = await DeviceInformation.FindAllAsync(aqs);
-            _i2Cpwm = await I2cDevice.FromIdAsync(dis[0].Id, settings);
+            _device = await I2cDevice.FromIdAsync(dis[0].Id, settings);
             SetPwmFreq(PwmFreq);
             _isInited = true;
         }
 
         public void Dispose()
         {
-            _i2Cpwm.Dispose();
+            _device.Dispose();
         }
 
         private void SetPwmFreq(float freq)
@@ -114,13 +108,13 @@ namespace Bekker.Adafruit.PCA9685PwmDriver
         private byte Read8(byte addr)
         {
             var readBuffer = new byte[1];
-            _i2Cpwm.WriteRead(new byte[] { addr }, readBuffer);
+            _device.WriteRead(new byte[] { addr }, readBuffer);
             return readBuffer[0];
         }
 
         private void Write8(byte addr, byte d)
         {
-            _i2Cpwm.Write(new byte[] { addr, d });
+            _device.Write(new byte[] { addr, d });
         }
 
         private long Map(long x, long in_min, long in_max, long out_min, long out_max)

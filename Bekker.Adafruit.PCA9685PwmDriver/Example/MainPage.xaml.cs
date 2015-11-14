@@ -43,7 +43,6 @@ namespace Example
 
         private void Unload(object sender, RoutedEventArgs e)
         {
-            _driver.TakeDown();
             _driver.Dispose();
         }
     }
