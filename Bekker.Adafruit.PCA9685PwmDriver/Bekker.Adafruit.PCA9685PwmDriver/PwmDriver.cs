@@ -38,6 +38,12 @@ namespace Bekker.Adafruit.PCA9685PwmDriver
             InitI2CPwm();
         }
 
+        public void TakeDown()
+        {
+            _i2Cpwm.Dispose();
+
+        }
+
         public void ReInit()
         {
             InitI2CPwm();
