@@ -6,9 +6,9 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("Bekker.Adafruit.PCA9685PwmDriver")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("Raspberry pi 2, Windows 10 IOT driver for Adafruit 16-Channel 12-bit PWM Breakout")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
+[assembly: AssemblyCompany("Christian Bekker Andersen")]
 [assembly: AssemblyProduct("Bekker.Adafruit.PCA9685PwmDriver")]
 [assembly: AssemblyCopyright("Copyright ©  2015")]
 [assembly: AssemblyTrademark("")]

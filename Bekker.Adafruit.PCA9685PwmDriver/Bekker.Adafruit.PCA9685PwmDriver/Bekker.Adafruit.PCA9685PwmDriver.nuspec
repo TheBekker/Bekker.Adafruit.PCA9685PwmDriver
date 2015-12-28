@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>$id$</id>
+    <version>$version$</version>
+    <title>Bekker.Adafruit.PCA9685PwmDriver</title>
+    <authors>Christian Bekker Andersen</authors>
+    <projectUrl>https://github.com/TheBekker/Bekker.Adafruit.PCA9685PwmDriver</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Raspberry pi 2, Windows 10 IOT driver for Adafruit 16-Channel 12-bit PWM Breakout</description>
+    <releaseNotes>Initial release</releaseNotes>
+    <copyright>Copyright 2015</copyright>
+    <tags>rpi2 raspberry pi pwm PCA9685 adafruit</tags>
+  </metadata>
+</package>
