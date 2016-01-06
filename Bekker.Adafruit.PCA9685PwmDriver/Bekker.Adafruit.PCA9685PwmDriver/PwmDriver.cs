@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Windows.Devices.Enumeration;
 using Windows.Devices.I2c;
@@ -10,51 +8,52 @@ namespace Bekker.Adafruit.PCA9685PwmDriver
 {
     public class PwmDriver
     {
+        private const byte RegMode1 = 0x0;
+        private const byte RegPrescale = 0xFE;
+        private const double ClockFrequency = 25000000;
+        private const byte Servo0OnL = 0x6;
+        private const byte Servo0OnH = 0x7;
+        private const byte Servo0OffL = 0x8;
+        private const byte Servo0OffH = 0x9;
+        private const int I2CResetAddress = 0x0;
+        private const ushort PulseResolution = 4096;
+
         public static string I2CControllerName = "I2C1";
         public static byte PwmI2CAddr = 0x40;
-        public static int PwmFreq = 50;
+        public static int PwmFreq = 60;
+        private static readonly byte[] ResetCommand = { 0x06 };
+        private static readonly uint MinPulse = 150;
+        private static readonly uint MaxPulse = 600;
+        private static bool _isInited;
+        private I2cDevice _primaryDevice;
+        private I2cDevice _resetDevice;
 
-        private const byte Pca9685Mode1 = 0x0;
-        private const byte Pca9685Prescale = 0xFE;
-
-        private const byte SERVO0_ON_L = 0x6;
-        private const byte SERVO0_ON_H = 0x7;
-        private const byte SERVO0_OFF_L = 0x8;
-        private const byte SERVO0_OFF_H = 0x9;
-
-        private static uint MinPulse = 150;
-        private static uint MaxPulse = 600;
-
-        private I2cDevice _device;
-        private static bool _isInited = false;
-
-        public bool IsDevicedInited => _isInited;
-
-        public PwmDriver(byte i2CAddress = 0x40, int pwmFreq = 50, string controllerName = "I2C1")
+        public PwmDriver(byte i2CAddress = 0x40, int pwmFreq = 60, string controllerName = "I2C1")
         {
             PwmI2CAddr = i2CAddress;
             I2CControllerName = controllerName;
             PwmFreq = pwmFreq;
-            InitI2CPwm();
+            UISafeWait(EnsureInitializedAsync);
         }
 
-        public void ReInit()
-        {
-            InitI2CPwm();
-        }
+        public bool IsDevicedInited => _isInited;
 
         public void MovePercentage(byte servo, int percentage)
         {
-            if(percentage > 100)
+            if (percentage > 100)
             {
                 percentage = 100;
             }
-            if(percentage < 0)
+            if (percentage < 0)
             {
                 percentage = 0;
             }
 
-            var pulse = Map(percentage,0,100, MinPulse, MaxPulse);
+            var pulse = Map(percentage, 0, 100, MinPulse, MaxPulse);
+            if (percentage == 0)
+            {
+                pulse = 0;
+            }
             Move(servo, 0, (int)pulse);
         }
 
@@ -64,62 +63,142 @@ namespace Bekker.Adafruit.PCA9685PwmDriver
             {
                 return;
             }
-            Write8(Pca9685Mode1, 0x0);
-            Write8((byte)(SERVO0_ON_L + 4 * num), (byte)on);
-            Write8((byte)(SERVO0_ON_H + 4 * num), (byte)(on >> 8));
-            Write8((byte)(SERVO0_OFF_L + 4 * num), (byte)off);
-            Write8((byte)(SERVO0_OFF_H + 4 * num), (byte)(off >> 8));
+            Write8(RegMode1, 0x0);
+            Write8((byte)(Servo0OnL + 4 * num), (byte)on);
+            Write8((byte)(Servo0OnH + 4 * num), (byte)(on >> 8));
+            Write8((byte)(Servo0OffL + 4 * num), (byte)off);
+            Write8((byte)(Servo0OffH + 4 * num), (byte)(off >> 8));
         }
 
-        private async void InitI2CPwm()
+        private async Task EnsureInitializedAsync()
         {
-            var settings = new I2cConnectionSettings(PwmI2CAddr);
-            settings.BusSpeed = I2cBusSpeed.FastMode;
+            // If already initialized, done
+            if (_isInited)
+            {
+                return;
+            }
 
+            // Validate
+            if (string.IsNullOrWhiteSpace(I2CControllerName))
+            {
+                throw new Exception("Controller name not set");
+            }
+
+            // Get a query for I2C
             var aqs = I2cDevice.GetDeviceSelector(I2CControllerName);
-            var dis = await DeviceInformation.FindAllAsync(aqs);
-            _device = await I2cDevice.FromIdAsync(dis[0].Id, settings);
-            SetPwmFreq(PwmFreq);
+
+            // Find the first I2C device
+            var di = (await DeviceInformation.FindAllAsync(aqs)).FirstOrDefault();
+
+            // Make sure we found an I2C device
+            if (di == null)
+            {
+                throw new Exception("Device Info null: " + I2CControllerName);
+            }
+
+            // Connection settings for primary device
+            var primarySettings = new I2cConnectionSettings(PwmI2CAddr)
+            {
+                BusSpeed = I2cBusSpeed.FastMode,
+                SharingMode = I2cSharingMode.Exclusive
+            };
+
+            // Get the primary device
+            _primaryDevice = await I2cDevice.FromIdAsync(di.Id, primarySettings);
+            if (_primaryDevice == null)
+            {
+                throw new Exception("PCA9685 primary device not found");
+            }
+
+
+            // Connection settings for reset device
+            var resetSettings = new I2cConnectionSettings(PwmI2CAddr);
+            resetSettings.SlaveAddress = I2CResetAddress;
+
+            // Get the reset device
+            _resetDevice = await I2cDevice.FromIdAsync(di.Id, resetSettings);
+            if (_resetDevice == null)
+            {
+                throw new Exception("PCA9685 reset device not found");
+            }
+
+            // Initialize the controller
+            await InitializeControllerAsync();
+
+
+            // Done initializing
             _isInited = true;
         }
 
-        public void Dispose()
+        private async Task InitializeControllerAsync()
         {
-            _device.Dispose();
+            if (_primaryDevice == null) return;
+
+            ResetController();
+            var prescaleval = ClockFrequency;
+            prescaleval /= PulseResolution;
+            prescaleval /= PwmFreq;
+            prescaleval -= 1;
+            var prescale = (byte)Math.Floor(prescaleval + 0.5);
+            Write8(RegPrescale, prescale);
+
+            await RestartControllerAsync(0xA1);
         }
 
-        private void SetPwmFreq(float freq)
+        private void ResetController()
         {
-            float prescaleval = 25000000;
-            prescaleval /= 4096;
+            _resetDevice.Write(ResetCommand);
+        }
+
+        private async Task RestartControllerAsync(byte mode1)
+        {
+            Write8(RegMode1, mode1);
+
+            // Wait for more than 500us to stabilize.  	
+            await Task.Delay(1);
+        }
+
+        private async Task<bool> SetPwmFreq(float freq)
+        {
+            var prescaleval = ClockFrequency;
+            prescaleval /= PulseResolution;
             prescaleval /= freq;
             prescaleval -= 1;
-            byte prescale = (byte)System.Math.Floor(prescaleval + 0.5);
+            var prescale = (byte)Math.Floor(prescaleval + 0.5);
 
-            byte oldmode = Read8(Pca9685Mode1);
-            byte newmode = (byte)((oldmode & 0x7F) | 0x10); // sleep
-            Write8(Pca9685Mode1, newmode); // go to sleep
-            Write8(Pca9685Prescale, prescale); // set the prescaler
-            Write8(Pca9685Mode1, oldmode);
+            var oldmode = Read8(RegMode1);
+            var newmode = (byte)((oldmode & 0x7F) | 0x10); // sleep
+            Write8(RegMode1, newmode); // go to sleep
+            Write8(RegPrescale, prescale); // set the prescaler
+            Write8(RegMode1, oldmode);
 
-            Write8(Pca9685Mode1, (byte)(oldmode | 0x80));
+            Write8(RegMode1, (byte)(oldmode | 0x80));
+
+            // Wait for more than 500us to stabilize.  	
+            await Task.Delay(1);
+            return true;
         }
 
         private byte Read8(byte addr)
         {
             var readBuffer = new byte[1];
-            _device.WriteRead(new byte[] { addr }, readBuffer);
+            _primaryDevice.WriteRead(new[] { addr }, readBuffer);
             return readBuffer[0];
         }
 
         private void Write8(byte addr, byte d)
         {
-            _device.Write(new byte[] { addr, d });
+            _primaryDevice.Write(new[] { addr, d });
         }
 
         private long Map(long x, long in_min, long in_max, long out_min, long out_max)
         {
             return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+        }
+
+        public static void UISafeWait(Func<Task> taskFunction)
+        {
+            Task.Run(async () => { await taskFunction().ConfigureAwait(false); }).Wait();
         }
     }
 }

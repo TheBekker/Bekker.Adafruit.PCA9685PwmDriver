@@ -11,8 +11,8 @@
     <AssemblyName>Example</AssemblyName>
     <DefaultLanguage>en-US</DefaultLanguage>
     <TargetPlatformIdentifier>UAP</TargetPlatformIdentifier>
-    <TargetPlatformVersion>10.0.10240.0</TargetPlatformVersion>
-    <TargetPlatformMinVersion>10.0.10240.0</TargetPlatformMinVersion>
+    <TargetPlatformVersion>10.0.10586.0</TargetPlatformVersion>
+    <TargetPlatformMinVersion>10.0.10586.0</TargetPlatformMinVersion>
     <MinimumVisualStudioVersion>14</MinimumVisualStudioVersion>
     <EnableDotNetNativeCompatibleProfile>true</EnableDotNetNativeCompatibleProfile>
     <FileAlignment>512</FileAlignment>
@@ -131,15 +131,15 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Bekker.Adafruit.PCA9685PwmDriver\Bekker.Adafruit.PCA9685PwmDriver.csproj">
-      <Project>{700b56e1-74d3-4b3d-a008-41213fda22ed}</Project>
-      <Name>Bekker.Adafruit.PCA9685PwmDriver</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <SDKReference Include="WindowsIoT, Version=10.0.10240.0">
       <Name>Windows IoT Extensions for the UWP</Name>
     </SDKReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Bekker.Adafruit.PCA9685PwmDriver\Bekker.Adafruit.PCA9685PwmDriver.csproj">
+      <Project>{700B56E1-74D3-4B3D-A008-41213FDA22ED}</Project>
+      <Name>Bekker.Adafruit.PCA9685PwmDriver</Name>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
     <VisualStudioVersion>14.0</VisualStudioVersion>

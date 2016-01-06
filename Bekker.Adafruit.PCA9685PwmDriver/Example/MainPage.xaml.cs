@@ -1,5 +1,4 @@
-﻿using Bekker.Adafruit.PCA9685PwmDriver;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -13,6 +12,7 @@ using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
+using Bekker.Adafruit.PCA9685PwmDriver;
 
 // The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
 
@@ -43,7 +43,7 @@ namespace Example
 
         private void Unload(object sender, RoutedEventArgs e)
         {
-            _driver.Dispose();
+            
         }
     }
 }
