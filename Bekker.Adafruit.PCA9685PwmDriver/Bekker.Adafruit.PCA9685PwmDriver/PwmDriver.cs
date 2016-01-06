@@ -158,27 +158,6 @@ namespace Bekker.Adafruit.PCA9685PwmDriver
             await Task.Delay(1);
         }
 
-        private async Task<bool> SetPwmFreq(float freq)
-        {
-            var prescaleval = ClockFrequency;
-            prescaleval /= PulseResolution;
-            prescaleval /= freq;
-            prescaleval -= 1;
-            var prescale = (byte)Math.Floor(prescaleval + 0.5);
-
-            var oldmode = Read8(RegMode1);
-            var newmode = (byte)((oldmode & 0x7F) | 0x10); // sleep
-            Write8(RegMode1, newmode); // go to sleep
-            Write8(RegPrescale, prescale); // set the prescaler
-            Write8(RegMode1, oldmode);
-
-            Write8(RegMode1, (byte)(oldmode | 0x80));
-
-            // Wait for more than 500us to stabilize.  	
-            await Task.Delay(1);
-            return true;
-        }
-
         private byte Read8(byte addr)
         {
             var readBuffer = new byte[1];
