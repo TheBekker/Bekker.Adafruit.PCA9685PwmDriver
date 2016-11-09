@@ -38,7 +38,7 @@ namespace Bekker.Adafruit.PCA9685PwmDriver
 
         public bool IsDevicedInited => _isInited;
 
-        public void MovePercentage(byte servo, double percentage)
+        public void DrivePercentage(byte servo, double percentage)
         {
             if (percentage > 1.0)
             {
@@ -54,10 +54,10 @@ namespace Bekker.Adafruit.PCA9685PwmDriver
             {
                 pulse = 0;
             }
-            Move(servo, 0, (int)pulse);
+            Pulse(servo, 0, (int)pulse);
         }
 
-        private void Move(byte num, int on, int off)
+        public void Pulse(byte num, int on, int off)
         {
             if (!_isInited)
             {
