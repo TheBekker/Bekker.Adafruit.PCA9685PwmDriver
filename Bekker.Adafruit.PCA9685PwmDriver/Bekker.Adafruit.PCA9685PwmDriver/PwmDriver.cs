@@ -25,15 +25,22 @@ namespace Bekker.Adafruit.PCA9685PwmDriver
         private static readonly uint MinPulse = 150;
         private static readonly uint MaxPulse = 600;
         private static bool _isInited;
-        private I2cDevice _primaryDevice;
-        private I2cDevice _resetDevice;
+        private static I2cDevice _primaryDevice;
+        private static I2cDevice _resetDevice;
 
-        public PwmDriver(byte i2CAddress = 0x40, int pwmFreq = 60, string controllerName = "I2C1")
+        private PwmDriver(byte i2CAddress = 0x40, int pwmFreq = 60, string controllerName = "I2C1")
         {
             PwmI2CAddr = i2CAddress;
             I2CControllerName = controllerName;
             PwmFreq = pwmFreq;
-            UISafeWait(EnsureInitializedAsync);
+        }
+
+        public static async Task<PwmDriver> Init(byte i2CAddress = 0x40, int pwmFreq = 60, string controllerName = "I2C1")
+        {
+            var pwmDriver = new PwmDriver(i2CAddress, pwmFreq, controllerName);
+            await EnsureInitializedAsync();
+
+            return pwmDriver;
         }
 
         public bool IsDevicedInited => _isInited;
@@ -70,7 +77,7 @@ namespace Bekker.Adafruit.PCA9685PwmDriver
             Write8((byte)(Servo0OffH + 4 * num), (byte)(off >> 8));
         }
 
-        private async Task EnsureInitializedAsync()
+        private static async Task EnsureInitializedAsync()
         {
             // If already initialized, done
             if (_isInited)
@@ -130,7 +137,7 @@ namespace Bekker.Adafruit.PCA9685PwmDriver
             _isInited = true;
         }
 
-        private async Task InitializeControllerAsync()
+        private static async Task InitializeControllerAsync()
         {
             if (_primaryDevice == null) return;
 
@@ -145,12 +152,12 @@ namespace Bekker.Adafruit.PCA9685PwmDriver
             await RestartControllerAsync(0xA1);
         }
 
-        private void ResetController()
+        private static void ResetController()
         {
             _resetDevice.Write(ResetCommand);
         }
 
-        private async Task RestartControllerAsync(byte mode1)
+        private static async Task RestartControllerAsync(byte mode1)
         {
             Write8(RegMode1, mode1);
 
@@ -165,7 +172,7 @@ namespace Bekker.Adafruit.PCA9685PwmDriver
             return readBuffer[0];
         }
 
-        private void Write8(byte addr, byte d)
+        private static void Write8(byte addr, byte d)
         {
             _primaryDevice.Write(new[] { addr, d });
         }

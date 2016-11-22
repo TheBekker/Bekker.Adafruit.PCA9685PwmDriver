@@ -27,19 +27,24 @@ namespace Example
         public MainPage()
         {
             this.InitializeComponent();
+            this.Loaded += Test;
+            
+        }
 
-            _driver = new PwmDriver();
-            while(true)
+        private async void Test(object sender, RoutedEventArgs e)
+        {
+            _driver = await PwmDriver.Init();
+            while (true)
             {
-                if(_driver.IsDevicedInited)
+                if (_driver.IsDevicedInited)
                 {
-                    _driver.MovePercentage(0, 0);
+                    _driver.DrivePercentage(0, 0);
                     System.Threading.Tasks.Task.Delay(2000).Wait();
-                    _driver.MovePercentage(0, 95);
-                    System.Threading.Tasks.Task.Delay(2000).Wait();
+                    _driver.DrivePercentage(0, 100);
                 }
             }
         }
+       
 
         private void Unload(object sender, RoutedEventArgs e)
         {
