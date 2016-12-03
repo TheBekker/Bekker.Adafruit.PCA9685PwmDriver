@@ -2,13 +2,14 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
   <metadata>
     <id>$id$</id>
-    <version>1.3.0</version>
+    <version>1.3.1</version>
     <title>Bekker.Adafruit.PCA9685PwmDriver</title>
     <authors>Christian Bekker Andersen</authors>
     <projectUrl>https://github.com/TheBekker/Bekker.Adafruit.PCA9685PwmDriver</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Raspberry pi 2, Windows 10 IOT driver for Adafruit 16-Channel 12-bit PWM Breakout</description>
     <releaseNotes>
+      1.3.1 - Target "Any CPU"
       1.3.0 - Improvements to make init awaitable. breaking change!.
       1.2.2 - Renamed MovePercentage() to DrivePercentage(), Pulse() method made public, updated nuspec with dependencies
       1.2.1 - Fix 1.2 release
